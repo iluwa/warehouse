@@ -2,6 +2,7 @@ package com.fulfilment.application.monolith.stores;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,8 +19,9 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
-import java.util.List;
 import org.jboss.logging.Logger;
+
+import java.util.List;
 
 @Path("store")
 @ApplicationScoped
@@ -47,13 +49,12 @@ public class StoreResource {
   }
 
   @POST
-  @Transactional
   public Response create(Store store) {
     if (store.id != null) {
       throw new WebApplicationException("Id was invalidly set on request.", 422);
     }
 
-    store.persist();
+    QuarkusTransaction.requiringNew().run(store::persist);
 
     legacyStoreManagerGateway.createStoreOnLegacySystem(store);
 
@@ -62,51 +63,54 @@ public class StoreResource {
 
   @PUT
   @Path("{id}")
-  @Transactional
   public Store update(Long id, Store updatedStore) {
     if (updatedStore.name == null) {
       throw new WebApplicationException("Store Name was not set on request.", 422);
     }
 
-    Store entity = Store.findById(id);
+    Store savedEntity = QuarkusTransaction.requiringNew().call(() -> {
+      Store entity = Store.findById(id);
+      if (entity == null) {
+        throw new WebApplicationException("Store with id of " + id + " does not exist.", 404);
+      }
 
-    if (entity == null) {
-      throw new WebApplicationException("Store with id of " + id + " does not exist.", 404);
-    }
-
-    entity.name = updatedStore.name;
-    entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
+      entity.name = updatedStore.name;
+      entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
+      return entity;
+    });
 
     legacyStoreManagerGateway.updateStoreOnLegacySystem(updatedStore);
 
-    return entity;
+    return savedEntity;
   }
 
   @PATCH
   @Path("{id}")
-  @Transactional
   public Store patch(Long id, Store updatedStore) {
     if (updatedStore.name == null) {
       throw new WebApplicationException("Store Name was not set on request.", 422);
     }
 
-    Store entity = Store.findById(id);
+    var savedEntity = QuarkusTransaction.requiringNew().call(() -> {
+      Store entity = Store.findById(id);
 
-    if (entity == null) {
-      throw new WebApplicationException("Store with id of " + id + " does not exist.", 404);
-    }
+      if (entity == null) {
+        throw new WebApplicationException("Store with id of " + id + " does not exist.", 404);
+      }
 
-    if (entity.name != null) {
-      entity.name = updatedStore.name;
-    }
+      if (entity.name != null) {
+        entity.name = updatedStore.name;
+      }
 
-    if (entity.quantityProductsInStock != 0) {
-      entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
-    }
+      if (entity.quantityProductsInStock != 0) {
+        entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
+      }
+      return entity;
+    });
 
     legacyStoreManagerGateway.updateStoreOnLegacySystem(updatedStore);
 
-    return entity;
+    return savedEntity;
   }
 
   @DELETE
