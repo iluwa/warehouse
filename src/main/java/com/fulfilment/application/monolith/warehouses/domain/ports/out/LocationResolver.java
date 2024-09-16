@@ -1,4 +1,4 @@
-package com.fulfilment.application.monolith.warehouses.domain.ports;
+package com.fulfilment.application.monolith.warehouses.domain.ports.out;
 
 import com.fulfilment.application.monolith.warehouses.domain.models.Location;
 
