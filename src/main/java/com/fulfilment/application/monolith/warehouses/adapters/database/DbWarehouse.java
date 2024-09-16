@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "warehouse")
@@ -22,6 +24,8 @@ public class DbWarehouse {
   private Integer capacity;
 
   private Integer stock;
+
+  private List<String> products = new ArrayList<>();
 
   private LocalDateTime createdAt;
 
@@ -81,5 +85,13 @@ public class DbWarehouse {
 
   public void id(Long id) {
     this.id = id;
+  }
+
+  public List<String> products() {
+    return products;
+  }
+
+  public void products(List<String> products) {
+    this.products = products;
   }
 }

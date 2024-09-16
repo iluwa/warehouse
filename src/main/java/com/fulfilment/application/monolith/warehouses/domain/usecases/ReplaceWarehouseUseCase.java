@@ -43,6 +43,9 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
     Location newLocation = baseValidation.checkLocationIdentifier(newWarehouse);
     validateLocationCapacity(currentWarehouse, newWarehouse, newLocation);
 
+    baseValidation.checkProductLimit(newWarehouse);
+    baseValidation.checkProductsExist(newWarehouse.products());
+
     currentWarehouse.archivedAt(LocalDateTime.now());
     warehouseStore.update(currentWarehouse);
 

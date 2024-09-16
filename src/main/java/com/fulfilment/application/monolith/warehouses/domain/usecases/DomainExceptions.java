@@ -45,4 +45,10 @@ public class DomainExceptions {
       super("A new warehouse must be placed at the same area as the old one (id = " + warehouse.id() + ")");
     }
   }
+
+  public static class WarehouseReachedProductLimitException extends RuntimeException {
+  }
+
+  public static class ProductNotExistException extends RuntimeException {
+  }
 }

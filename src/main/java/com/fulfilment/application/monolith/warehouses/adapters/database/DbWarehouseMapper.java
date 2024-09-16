@@ -13,7 +13,8 @@ public class DbWarehouseMapper {
             dbWarehouse.capacity(),
             dbWarehouse.stock(),
             dbWarehouse.createdAt(),
-            dbWarehouse.archivedAt()
+            dbWarehouse.archivedAt(),
+            dbWarehouse.products()
     );
   }
 
@@ -26,6 +27,7 @@ public class DbWarehouseMapper {
     dbWarehouse.stock(warehouse.stock());
     dbWarehouse.capacity(warehouse.capacity());
     dbWarehouse.location(warehouse.location());
+    dbWarehouse.products(warehouse.products());
     return dbWarehouse;
   }
 

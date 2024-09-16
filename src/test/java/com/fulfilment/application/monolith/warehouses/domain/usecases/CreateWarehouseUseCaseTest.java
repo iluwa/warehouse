@@ -2,12 +2,15 @@ package com.fulfilment.application.monolith.warehouses.domain.usecases;
 
 import com.fulfilment.application.monolith.ClearDatabase;
 import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
+import com.fulfilment.application.monolith.warehouses.domain.ports.out.ProductChecker;
 import com.fulfilment.application.monolith.warehouses.domain.ports.out.WarehouseStore;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -21,6 +24,7 @@ public class CreateWarehouseUseCaseTest {
   @Inject private WarehouseStore warehouseStore;
   @Inject private CreateWarehouseUseCase createWarehouseUseCase;
   @Inject private ClearDatabase clearDatabase;
+  @InjectMock private ProductChecker productChecker;
 
   @BeforeEach
   void setUp() {
@@ -113,8 +117,27 @@ public class CreateWarehouseUseCaseTest {
   }
 
   @Test
+  void testWhenMaximumProductExceededThenException() {
+    Warehouse warehouse = new Warehouse(
+            null,
+            "code2",
+            "ZWOLLE-001",
+            1,
+            1,
+            null,
+            null,
+            List.of("1", "2", "3", "4", "5", "6")
+    );
+    assertThrows(DomainExceptions.WarehouseReachedProductLimitException.class,
+            () -> createWarehouseUseCase.create(warehouse));
+  }
+
+  @Test
   void testCreationSuccess() {
     // when
+    List<String> productList = List.of("TONSTAD", "KALLAX");
+    Mockito.when(productChecker.check(productList)).thenReturn(ProductChecker.ProductCheckResult.OK);
+
     Warehouse warehouse = new Warehouse(
             null,
             "code2",
@@ -122,7 +145,8 @@ public class CreateWarehouseUseCaseTest {
             40,
             1,
             null,
-            null
+            null,
+            productList
     );
     Warehouse savedWarehouse = createWarehouseUseCase.create(warehouse);
 

@@ -22,6 +22,8 @@ public class CreateWarehouseUseCase implements CreateWarehouseOperation {
     baseValidation.checkExistsByBuCode(warehouse);
     Location location = baseValidation.checkLocationIdentifier(warehouse);
     checkLocationLimits(location, warehouse);
+    baseValidation.checkProductLimit(warehouse);
+    baseValidation.checkProductsExist(warehouse.products());
     return warehouseStore.create(warehouse);
   }
 
